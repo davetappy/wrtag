@@ -172,6 +172,7 @@ var funcMap = texttemplate.FuncMap{
 	"pad0":     func(amount, n int) string { return fmt.Sprintf("%0*d", amount, n) },
 	"sort":     func(strings []string) []string { sort.Strings(strings); return strings },
 	"safepath": func(p string) string { return fileutil.SafePath(p) },
+    "moveThe":  func(s string) string { s = strings.TrimSpace(s); if strings.HasPrefix(strings.ToLower(s), "the ") { return strings.TrimSpace(s[4:]) + ", The" }; return s },
 
 	"artists":             musicbrainz.ArtistsNames,
 	"artistsString":       musicbrainz.ArtistsString,
