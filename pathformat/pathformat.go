@@ -212,20 +212,38 @@ var funcMap = texttemplate.FuncMap{
 		return strs
 	},
 
-	"moveThe": func(s string) string {
-		s = strings.TrimSpace(s)
-		sLower := strings.ToLower(s)
+	"movePrefix": func(input interface{}) interface{} {
 		prefixes := map[string]string{
 			"the ": "The",
 			"a ":   "A",
 			"an ":  "An",
 		}
-		for prefix, label := range prefixes {
-			if strings.HasPrefix(sLower, prefix) {
-				return strings.TrimSpace(s[len(prefix):]) + ", " + label
+
+		switch v := input.(type) {
+		case string:
+			s := strings.TrimSpace(v)
+			sLower := strings.ToLower(s)
+			for prefix, label := range prefixes {
+				if strings.HasPrefix(sLower, prefix) {
+					return strings.TrimSpace(s[len(prefix):]) + ", " + label
+				}
 			}
+			return s
+
+		case []string:
+			for i, s := range v {
+				sTrim := strings.TrimSpace(s)
+				if a, b, ok := strings.Cut(sTrim, " "); ok {
+					label := strings.ToLower(a)
+					if l, ok := prefixes[label+" "]; ok {
+						v[i] = strings.TrimSpace(b) + ", " + l
+					}
+				}
+			}
+			return v
+		default:
+			return input
 		}
-		return s
 	},
 
 }
