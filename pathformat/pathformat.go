@@ -192,6 +192,7 @@ var funcMap = texttemplate.FuncMap{
 	"pad0":     func(amount, n int) string { return fmt.Sprintf("%0*d", amount, n) },
 	"sort":     func(strs []string) []string { sort.Strings(strs); return strs },
 	"safepath": func(p string) string { return fileutil.SafePath(p) },
+//	"the": func(s string) string { s = strings.TrimSpace(s); if strings.HasPrefix(strings.ToLower(s), "the ") { return strings.TrimSpace(s[4:]) + ", The" }; return s },
 
 	"artists":             musicbrainz.ArtistsNames,
 	"artistsString":       musicbrainz.ArtistsString,
@@ -210,4 +211,21 @@ var funcMap = texttemplate.FuncMap{
 		}
 		return strs
 	},
+
+	"moveThe": func(s string) string {
+		s = strings.TrimSpace(s)
+		sLower := strings.ToLower(s)
+		prefixes := map[string]string{
+			"the ": "The",
+			"a ":   "A",
+			"an ":  "An",
+		}
+		for prefix, label := range prefixes {
+			if strings.HasPrefix(sLower, prefix) {
+				return strings.TrimSpace(s[len(prefix):]) + ", " + label
+			}
+		}
+		return s
+	},
+
 }
