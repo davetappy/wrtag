@@ -23,6 +23,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"encoding/json"
 
 	"go.senan.xyz/wrtag"
 	wrtagflag "go.senan.xyz/wrtag/cmd/internal/wrtagflag"
@@ -374,7 +375,8 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
+		var path string
 		// Check Content-Type header to decide how to parse
 		if r.Header.Get("Content-Type") == "application/json" {
 			var payload struct {
