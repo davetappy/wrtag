@@ -23,7 +23,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"encoding/json"
 
 	"go.senan.xyz/wrtag"
 	wrtagflag "go.senan.xyz/wrtag/cmd/internal/wrtagflag"
@@ -375,24 +374,7 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		var path string
-		// Check Content-Type header to decide how to parse
-		if r.Header.Get("Content-Type") == "application/json" {
-			var payload struct {
-				LocalDirectoryName string `json:"localDirectoryName"`
-			}
-			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-				http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-				return
-			}
-			path = payload.LocalDirectoryName
-		} else {
-			// Fallback to form parsing
-		        path = r.FormValue("path")
-		}
-	
-//		path := r.FormValue("path")
+		path := r.FormValue("path")
 		if path == "" {
 			http.Error(w, "no path provided", http.StatusBadRequest)
 			return
