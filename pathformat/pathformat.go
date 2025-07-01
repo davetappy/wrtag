@@ -203,7 +203,7 @@ var funcMap = texttemplate.FuncMap{
 	"artistsSort":         musicbrainz.ArtistsSortNames,
 	"artistsSortString":   musicbrainz.ArtistsSortString,
 
-	"the": func(strs []string) []string {
+/*	"the": func(strs []string) []string {
 		for i, s := range strs {
 			if a, b, ok := strings.Cut(s, " "); ok && (strings.EqualFold(a, "the") || strings.EqualFold(a, "a")) {
 				strs[i] = b + ", " + a
@@ -211,8 +211,8 @@ var funcMap = texttemplate.FuncMap{
 		}
 		return strs
 	},
-
-	"movePrefix": func(input interface{}) interface{} {
+*/
+	"the": func(input interface{}) interface{} {
 		prefixes := map[string]string{
 			"the": "The",
 			"a":   "A",
