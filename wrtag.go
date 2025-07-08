@@ -66,6 +66,9 @@ func IsNonFatalError(err error) bool {
 // The minimum score required for a MusicBrainz match to be considered valid.
 const minScore = 95
 
+// Max number of genres to write to a track.
+const numTrackGenres = 6
+
 const (
 	// thresholdSizeClean is the maximum size (20MB) of a directory that can be
 	// automatically cleaned up.
@@ -431,7 +434,6 @@ func WriteRelease(
 		}
 		return d.Format(time.DateOnly)
 	}
-
 	formatBool := func(b bool) string {
 		if !b {
 			return ""
@@ -439,8 +441,8 @@ func WriteRelease(
 		return "1"
 	}
 
-	var genreNames []string
-	for _, g := range genres[:min(6, len(genres))] { // top 6 genre strings
+	genreNames := make([]string, 0, numTrackGenres)
+	for _, g := range genres[:min(6, len(genres))] {
 		genreNames = append(genreNames, g.Name)
 	}
 
@@ -452,6 +454,16 @@ func WriteRelease(
 		if r.Artist.ID != "" && r.Type == "remixer" {
 			remixers = append(remixers, r.Artist.Name)
 			remixersCredit = append(remixersCredit, cmp.Or(r.TargetCredit, r.Artist.Name))
+		}
+	}
+
+	var composers, composersCredit []string
+	for _, rel := range trk.Recording.Relations {
+		for _, rel := range rel.Work.Relations {
+			if rel.Artist.ID != "" && rel.Type == "composer" {
+				composers = append(composers, rel.Artist.Name)
+				composersCredit = append(composersCredit, cmp.Or(rel.TargetCredit, rel.Artist.Name))
+			}
 		}
 	}
 
@@ -492,6 +504,11 @@ func WriteRelease(
 	t.Set(tags.Remixers, trimZero(remixers...)...)
 	t.Set(tags.RemixerCredit, trimZero(strings.Join(remixersCredit, ", "))...)
 	t.Set(tags.RemixersCredit, trimZero(remixersCredit...)...)
+
+	t.Set(tags.Composer, trimZero(strings.Join(composers, ", "))...)
+	t.Set(tags.Composers, trimZero(composers...)...)
+	t.Set(tags.ComposerCredit, trimZero(strings.Join(composersCredit, ", "))...)
+	t.Set(tags.ComposersCredit, trimZero(composersCredit...)...)
 
 	t.Set(tags.MusicBrainzRecordingID, trimZero(trk.Recording.ID)...)
 	t.Set(tags.MusicBrainzTrackID, trimZero(trk.ID)...)
