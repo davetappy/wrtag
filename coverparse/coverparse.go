@@ -2,6 +2,7 @@ package coverparse
 
 import (
 	"cmp"
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -18,7 +19,6 @@ func IsCover(p string) bool {
 
 // Compare ranks two potential cover paths, suitable for [slices.SortFunc].
 func Compare(a, b string) int {
-	a, b = strings.ToLower(a), strings.ToLower(b)
 	return cmp.Or(
 		slices.Compare(posArtTypes(a), posArtTypes(b)),
 		slices.Compare(posNumbers(a), posNumbers(b)),
@@ -38,14 +38,12 @@ func BestBetween(cover string, other string) string {
 }
 
 var artTypePriorities = map[string]int{
-	"front":    3,
-	"cover":    3,
-	"album":    3,
-	"folder":   2,
-	"albumart": 2,
-	"scan":     1,
-	"back":     0, // ignore
-	"artist":   0, // ignore
+	"front":    -3,
+	"cover":    -3,
+	"album":    -3,
+	"folder":   -2,
+	"albumart": -2,
+	"scan":     -1,
 }
 
 var artTypeExpr *regexp.Regexp
@@ -66,10 +64,16 @@ func init() {
 }
 
 func posArtTypes(path string) []int {
+	path = strings.ToLower(path)
 	matches := artTypeExpr.FindAllString(path, -1)
-	r := make([]int, len(matches))
-	for i, m := range matches {
-		r[i] = -artTypePriorities[m]
+	if len(matches) == 0 {
+		return []int{0}
+	}
+	r := make([]int, 0, len(matches))
+	for _, m := range matches {
+		if pos, ok := artTypePriorities[m]; ok {
+			r = append(r, pos)
+		}
 	}
 	return r
 }
@@ -78,21 +82,27 @@ var numbersExpr = regexp.MustCompile(`\d+`)
 
 func posNumbers(path string) []int {
 	matches := numbersExpr.FindAllString(path, -1)
-	r := make([]int, len(matches))
-	for i, m := range matches {
-		r[i], _ = strconv.Atoi(m)
+	r := make([]int, 0, len(matches))
+	for _, m := range matches {
+		pos, err := strconv.Atoi(m)
+		if err != nil {
+			panic(fmt.Errorf("parse int from numbers expr: %w", err))
+		}
+		r = append(r, pos)
 	}
 	return r
 }
 
 var filetypePriorities = map[string]int{
-	".png":  2,
-	".jpg":  1,
-	".jpeg": 1,
-	".bmp":  1,
-	".gif":  1,
+	".png":  -2,
+	".jpg":  -1,
+	".jpeg": -1,
+	".bmp":  -1,
+	".gif":  -1,
 }
 
 func posFiletype(path string) int {
-	return -filetypePriorities[filepath.Ext(path)]
+	path = strings.ToLower(path)
+	pos := filetypePriorities[filepath.Ext(path)]
+	return pos
 }
